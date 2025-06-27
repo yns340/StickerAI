@@ -1,10 +1,13 @@
 import SwiftUI
 import UIKit
 
+//MARK: - DESIGN
 struct MainView: View {
     @State private var isShowingImagePicker = false
+    @State private var isShowingSourceDialog = false
     @State private var selectedImage: UIImage?
-    
+    @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
+
     var body: some View {
         VStack {
             Spacer()
@@ -28,7 +31,7 @@ struct MainView: View {
             
             VStack(spacing: UIScreen.main.bounds.height * 0.03) {
                 Button(action: {
-                    isShowingImagePicker = true
+                    isShowingSourceDialog = true
                 }) {
                     Text("Resim yükle")
                         .font(.headline)
@@ -78,110 +81,71 @@ struct MainView: View {
             
             Spacer()
         }
+        .confirmationDialog("Resim Seç", isPresented: $isShowingSourceDialog) {
+            if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                Button("Şimdi Çek") {
+                    sourceType = .camera
+                    isShowingImagePicker = true
+                }
+            }
+            if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+                Button("Fotoğraflardan Yükle") {
+                    sourceType = .photoLibrary
+                    isShowingImagePicker = true
+                }
+            }
+            Button("İptal", role: .cancel) {}
+        }
         .sheet(isPresented: $isShowingImagePicker) {
-            ImagePickerOptionsView(
-                selectedImage: $selectedImage,
-                isPresented: $isShowingImagePicker
-            )
-            .presentationDetents([.fraction(0.25), .medium])
-            .presentationDragIndicator(.visible)
+            ImagePicker(
+                image: $selectedImage,
+                sourceType: sourceType
+            ) {
+                isShowingImagePicker = false
+            }
         }
         .navigationTitle("Ana Sayfa")
     }
 }
 
-struct ImagePickerOptionsView: View {
-    @Binding var selectedImage: UIImage?
-    @Binding var isPresented: Bool
-    @State private var showingImagePicker = false
-    @State private var sourceType: UIImagePickerController.SourceType = .camera
-    
-    var body: some View {
-        VStack {
-            Spacer()
-            
-            VStack(spacing: 20) {
-                Button(action: {
-                    sourceType = .camera
-                    showingImagePicker = true
-                }) {
-                    HStack {
-                        Image(systemName: "camera.fill")
-                            .font(.title2)
-                        Text("Şimdi Çek")
-                            .font(.headline)
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                    .cornerRadius(12)
-                }
-                .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
-                .padding(.horizontal, 20)
-                
-                Button(action: {}) {
-                    HStack {
-                        Image(systemName: "photo.on.rectangle")
-                            .font(.title2)
-                        Text("Fotoğraflardan Yükle")
-                            .font(.headline)
-                    }
-                    .foregroundColor(.gray)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.3))
-                    .cornerRadius(12)
-                }
-                .disabled(true)
-                .padding(.horizontal, 20)
-            }
-            .padding(.top, 20)
-            
-            Spacer()
-        }
-        .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(image: $selectedImage, sourceType: sourceType) {
-                isPresented = false
-            }
-        }
-    }
-}
+// MARK: - Image Picker
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
     let sourceType: UIImagePickerController.SourceType
     let onDismiss: () -> Void
-    
-    func makeUIViewController(context: UIViewControllerRepresentableContext<ImagePicker>) -> UIImagePickerController {
+
+    func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.delegate = context.coordinator
         picker.sourceType = sourceType
+        picker.delegate = context.coordinator
         return picker
     }
-    
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: UIViewControllerRepresentableContext<ImagePicker>) {}
-    
+
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+        uiViewController.sourceType = sourceType
+    }
+
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
-    
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         let parent: ImagePicker
-        
+
         init(_ parent: ImagePicker) {
             self.parent = parent
         }
-        
-        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
-            if let uiImage = info[.originalImage] as? UIImage {
-                parent.image = uiImage
+
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let image = info[.originalImage] as? UIImage {
+                parent.image = image
             }
             picker.dismiss(animated: true) {
                 self.parent.onDismiss()
             }
         }
-        
+
         func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
             picker.dismiss(animated: true) {
                 self.parent.onDismiss()
@@ -189,6 +153,8 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     MainView()
