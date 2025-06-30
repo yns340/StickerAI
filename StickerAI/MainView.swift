@@ -109,6 +109,7 @@ struct MainView: View {
 }
 
 // MARK: - Image Picker
+/*
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var image: UIImage?
@@ -153,6 +154,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         }
     }
 }
+ */
 
 // MARK: - Preview
 
