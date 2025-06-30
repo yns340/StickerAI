@@ -27,35 +27,44 @@ struct CartoonImagePreviewView: View {
                 
                 // Alt buton alanı
                 VStack(spacing: geometry.size.height * 0.02) {
-                    Button("Save as Image") {
-                        saveImageToGallery()
-                    }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * 0.095)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(geometry.size.width * 0.06)
-                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     
-                    Button("Save as Sticker Pack") {
-                        saveAsStickerPack()
+                    HStack(spacing: geometry.size.height * 0.02) {
+                        Button(action: {
+                            saveImageToGallery()
+                        }) {
+                            Text("Save as Image")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: geometry.size.height * 0.095)
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(geometry.size.width * 0.06)
+                                .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                        }
+                        
+                        Button(action: {
+                            saveAsStickerPack()
+                        }) {
+                            Text("Save as Sticker")
+                                .frame(maxWidth: .infinity)
+                                .frame(height: geometry.size.height * 0.095)
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(geometry.size.width * 0.06)
+                                .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * 0.095)
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(geometry.size.width * 0.06)
-                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     
-                    Button("Delete") {
+                    Button(action: {
                         dismiss()
+                    }) {
+                        Text("Delete")
+                            .frame(maxWidth: .infinity)
+                            .frame(height: geometry.size.height * 0.095)
+                            .background(Color.red.opacity(0.1))
+                            .foregroundColor(.red)
+                            .cornerRadius(geometry.size.width * 0.06)
+                            .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * 0.095)
-                    .background(Color.red.opacity(0.1))
-                    .foregroundColor(.red)
-                    .cornerRadius(geometry.size.width * 0.06)
-                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                 }
                 .padding(.horizontal, geometry.size.width * 0.07)
                 .padding(.bottom, geometry.size.height * 0.07)
@@ -65,16 +74,14 @@ struct CartoonImagePreviewView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    private func saveImageToGallery() {
-        // UIImageWriteToSavedPhotosAlbum implementasyonu
+    func saveImageToGallery() {
         UIImageWriteToSavedPhotosAlbum(cartoonImage, nil, nil, nil)
     }
     
-    private func saveAsStickerPack() {
-        // Sticker pack kaydetme implementasyonu
-        // Bu kısım daha complex olacak
+    func saveAsStickerPack() {
+        // Buraya sticker paketine kaydetme işlemi gelecek
+        // Daha sonra StickerKit, Telegram API ya da WhatsApp için uygun API eklenebilir
     }
-    
 }
 
 #Preview {

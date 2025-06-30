@@ -32,25 +32,30 @@ struct ImagePreviewView: View {
                 
                 // Alt buton alanı
                 VStack(spacing: geometry.size.height * 0.02) {
-                    Button("Generate Cartoon") {
+                    Button(action: {
                         generateCartoon()
+                    }) {
+                        Text("Generate Cartoon")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geometry.size.height * 0.095)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(geometry.size.width * 0.06)
+                        .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * 0.095)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(geometry.size.width * 0.06)
-                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     
-                    Button("Delete") {
+                    Button(action: {
                         dismiss()
+
+                    }) {
+                        Text("Delete")
+                        .frame(maxWidth: .infinity)
+                        .frame(height: geometry.size.height * 0.095)
+                        .background(Color.red.opacity(0.1))
+                        .foregroundColor(.red)
+                        .cornerRadius(geometry.size.width * 0.06)
+                        .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: geometry.size.height * 0.095)
-                    .background(Color.red.opacity(0.1))
-                    .foregroundColor(.red)
-                    .cornerRadius(geometry.size.width * 0.06)
-                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                 }
                 .padding(.horizontal, geometry.size.width * 0.07)
                 .padding(.bottom, geometry.size.height * 0.07)

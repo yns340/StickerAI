@@ -15,7 +15,7 @@ struct GenerateView: View {
                     
                     // Başlık
                     Text("Create Your Cartoonized Stickers")
-                        .font(.system(size: geometry.size.width * 0.05, weight: .semibold))
+                        .font(.system(size: geometry.size.width * 0.09, weight: .semibold))
                         .multilineTextAlignment(.center)
                     
                     // Upload Image Button
@@ -26,10 +26,8 @@ struct GenerateView: View {
                         }) {
                             Text("Upload Image")
                                 .frame(maxWidth: .infinity)
-                                .frame(height: geometry.size.height * 0.055)
+                                .frame(height: geometry.size.height * 0.095)
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
                                 .background(Color.blue)
                                 .cornerRadius(geometry.size.width * 0.06)
                                 .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
@@ -45,10 +43,8 @@ struct GenerateView: View {
                         }) {
                             Text("Take Photo")
                                 .frame(maxWidth: .infinity)
-                                .frame(height: geometry.size.height * 0.055)
+                                .frame(height: geometry.size.height * 0.095)
                                 .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding()
                                 .background(Color.blue)
                                 .cornerRadius(geometry.size.width * 0.06)
                                 .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
@@ -58,7 +54,7 @@ struct GenerateView: View {
                     
                     Spacer()
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, geometry.size.width * 0.07)
                 .navigationTitle("StickerAI")
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(isPresented: $showingPreview) {
