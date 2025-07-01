@@ -35,14 +35,20 @@ struct ImagePreviewView: View {
                     Button(action: {
                         generateCartoon()
                     }) {
-                        Text("Generate Cartoon")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: geometry.size.height * 0.095)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(geometry.size.width * 0.06)
-                        .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                        HStack(spacing: 6){
+                            Text(isProcessing ? "Generating" : "Generate Cartoon")
+                                if isProcessing {
+                                    JumpingDotsView()
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: geometry.size.height * 0.095)
+                            .background(isProcessing ? Color.black : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(geometry.size.width * 0.06)
+                            .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
                     }
+                    .disabled(isProcessing) // İşlem süresince tıklanmasın
                     
                     Button(action: {
                         dismiss()
@@ -91,6 +97,31 @@ struct ImagePreviewView: View {
             }
         }
 }
+
+struct JumpingDotsView: View {
+    @State private var animate = false
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .frame(width: 10, height: 10)
+                    .foregroundColor(.white)
+                    .offset(y: animate ? -10 : 0)  // Yukarı sıçrama 10px
+                    .animation(
+                        Animation.easeInOut(duration: 0.5)
+                            .repeatForever()
+                            .delay(Double(index) * 0.3),
+                        value: animate
+                    )
+            }
+        }
+        .onAppear {
+            animate = true
+        }
+    }
+}
+
 
 #Preview {
     NavigationStack {
