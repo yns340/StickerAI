@@ -14,6 +14,7 @@ Users can then use these cartoonized images as stickers in their chats or social
 
 - Swift
 - SwiftUI
+- SwiftData
 - CoreML  
 - UIKit 
 
