@@ -1,11 +1,5 @@
-//
-//  StickerAIApp.swift
-//  StickerAI
-//
-//  Created by Yunus Recepoğlu on 18.06.2025.
-//
-
 import SwiftUI
+import SwiftData
 
 @main
 struct StickerAIApp: App {
@@ -13,6 +7,7 @@ struct StickerAIApp: App {
         WindowGroup {
             ContentView()
         }
+        .modelContainer(for: [StickerImage.self]) // 🎯 Bu satır önemli!
     }
 }
 

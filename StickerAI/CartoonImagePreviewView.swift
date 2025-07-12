@@ -3,6 +3,7 @@ import SwiftUI
 struct CartoonImagePreviewView: View {
     let cartoonImage: UIImage
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var context // 🎯 Database context
     @State private var isSaving = false
     @State private var isSaved = false
     @State private var showCheck = false
@@ -120,22 +121,41 @@ struct CartoonImagePreviewView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
+    // 🎯 ANA FONKSİYON: Resmi kaydet
     func saveAsImage() {
         isSaving = true
-        
+
+        // 1️⃣ Önce tik animasyonu (her zaman)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
                 showCheck = true
             }
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            withAnimation {
-                isSaving = false
-                isSaved = true
+
+        // 2️⃣ Arka planda kayıt işlemi
+        DispatchQueue.global(qos: .userInitiated).async {
+            let success = DatabaseManager.shared.saveImage(cartoonImage, context: context)
+
+            DispatchQueue.main.async {
+                if success {
+                    // 3️⃣ Başarılıysa: Tik gösterildikten sonra yazıyı sola kaydır
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                        withAnimation {
+                            isSaving = false
+                            isSaved = true
+                        }
+                    }
+                } else {
+                    // ❌ Başarısızsa: Her şeyi eski haline döndür
+                    withAnimation {
+                        isSaving = false
+                        showCheck = false
+                    }
+                }
             }
         }
     }
+
 }
 
 struct StickerSheetView: View {
@@ -188,3 +208,4 @@ struct StickerSheetView: View {
         CartoonImagePreviewView(cartoonImage: UIImage(systemName: "star.fill")!)
     }
 }
+

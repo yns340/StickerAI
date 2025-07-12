@@ -1,6 +1,14 @@
 import SwiftUI
+import SwiftData
 
 struct LibraryView: View {
+    @Environment(\.modelContext) private var context
+        
+    // 🎯 Database'den sadece normal image'ları çek
+    @Query(filter: #Predicate<StickerImage> { $0.isSticker == false },
+        sort: \StickerImage.createdAt, order: .reverse)
+    private var savedImages: [StickerImage]
+    
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
@@ -17,37 +25,39 @@ struct LibraryView: View {
                         let itemWidth = (geometry.size.width - totalSpacing) / 2
                         
                         ScrollView {
-                            LazyVGrid(columns: [
-                                GridItem(.fixed(itemWidth), spacing: spacing),
-                                GridItem(.fixed(itemWidth), spacing: spacing)
-                            ], spacing: spacing) {
-                                ForEach(0..<10, id: \.self) { index in
-                                    Rectangle()
-                                        .fill(Color.yellow)
-                                        .frame(width: itemWidth, height: itemWidth)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.black, lineWidth: 4)
-                                        )
-                                        .cornerRadius(8)
-                                        .contextMenu {
-                                                Button {
-                                                    //Kaydetme
-                                                    print("Galeriye kaydedildi")
-                                                } label: {
-                                                    Label("Galeriye Kaydet", systemImage: "square.and.arrow.down")
-                                                }
-
-                                                Button {
-                                                    // Paylaşma işlemi
-                                                    print("Paylaşıldı")
-                                                } label: {
-                                                    Label("Paylaş", systemImage: "square.and.arrow.up")
-                                                }
-                                            }
+                            if savedImages.isEmpty {
+                                // Boş durum
+                                VStack(spacing: 20) {
+                                Image(systemName: "photo.on.rectangle.angled")
+                                    .font(.system(size: 60))
+                                    .foregroundColor(.gray)
+                                                        
+                                Text("No images saved yet")
+                                    .font(.title3)
+                                    .foregroundColor(.gray)
+                                                            
+                                Text("Create cartoon images to see them here!")
+                                    .font(.body)
+                                    .foregroundColor(.gray)
+                                    .multilineTextAlignment(.center)
                                 }
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 50)
+                            } else {
+                                // Resimler grid
+                                LazyVGrid(columns: [
+                                    GridItem(.fixed(itemWidth), spacing: spacing),
+                                    GridItem(.fixed(itemWidth), spacing: spacing)
+                                ], spacing: spacing) {
+                                    ForEach(savedImages) { stickerImage in
+                                        ImageGridItem(
+                                            stickerImage: stickerImage,
+                                            itemWidth: itemWidth
+                                        )
+                                    }
+                                }
+                                .padding(.horizontal, horizontalPadding)
                             }
-                            .padding(.horizontal, horizontalPadding)
                         }
                     }
                     .frame(height: geometry.size.height / 2)
@@ -86,6 +96,85 @@ struct LibraryView: View {
     }
 }
 
+// MARK: - Grid Item Component
+struct ImageGridItem: View {
+    let stickerImage: StickerImage
+    let itemWidth: CGFloat
+    @Environment(\.modelContext) private var context
+    
+    var body: some View {
+        Group {
+            if let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: itemWidth, height: itemWidth)
+                    .clipped()
+            } else {
+                // Yüklenemedi
+                Rectangle()
+                    .fill(Color.gray.opacity(0.3))
+                    .frame(width: itemWidth, height: itemWidth)
+                    .overlay(
+                        VStack {
+                            Image(systemName: "photo")
+                                .font(.title)
+                                .foregroundColor(.gray)
+                            Text("Not found")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    )
+            }
+        }
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .stroke(Color.black, lineWidth: 4)
+        )
+        .cornerRadius(8)
+        .contextMenu {
+            Button {
+                saveToPhotoLibrary()
+            } label: {
+                Label("Save to Photo Library", systemImage: "square.and.arrow.down")
+            }
+            
+            Button {
+                shareImage()
+            } label: {
+                Label("Share", systemImage: "square.and.arrow.up")
+            }
+            
+            Button(role: .destructive) {
+                deleteImage()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+    
+    private func saveToPhotoLibrary() {
+        guard let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) else { return }
+        UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
+    }
+    
+    private func shareImage() {
+        guard let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) else { return }
+        
+        let activityVC = UIActivityViewController(activityItems: [uiImage], applicationActivities: nil)
+        
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = windowScene.windows.first {
+            window.rootViewController?.present(activityVC, animated: true)
+        }
+    }
+    
+    private func deleteImage() {
+        DatabaseManager.shared.deleteImage(stickerImage, context: context)
+    }
+}
+
 #Preview {
     LibraryView()
 }
+
