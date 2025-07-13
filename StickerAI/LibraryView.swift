@@ -4,10 +4,10 @@ import SwiftData
 struct LibraryView: View {
     @Environment(\.modelContext) private var context
         
-    // 🎯 Database'den sadece normal image'ları çek
-    @Query(filter: #Predicate<StickerImage> { $0.isSticker == false },
-        sort: \StickerImage.createdAt, order: .reverse)
-    private var savedImages: [StickerImage]
+    // 🎯 Tüm ImageFile öğelerini çek (filtreye gerek yok artık)
+    @Query(sort: \ImageFile.createdAt, order: .reverse)
+    
+    private var savedImages: [ImageFile]
     
     var body: some View {
         NavigationStack {
@@ -51,7 +51,7 @@ struct LibraryView: View {
                                 ], spacing: spacing) {
                                     ForEach(savedImages) { stickerImage in
                                         ImageGridItem(
-                                            stickerImage: stickerImage,
+                                            imageFile: stickerImage,
                                             itemWidth: itemWidth
                                         )
                                     }
@@ -98,13 +98,13 @@ struct LibraryView: View {
 
 // MARK: - Grid Item Component
 struct ImageGridItem: View {
-    let stickerImage: StickerImage
+    let imageFile: ImageFile
     let itemWidth: CGFloat
     @Environment(\.modelContext) private var context
     
     var body: some View {
         Group {
-            if let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) {
+            if let uiImage = DatabaseManager.shared.loadImage(fileName: imageFile.imagePath) {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
@@ -154,12 +154,12 @@ struct ImageGridItem: View {
     }
     
     private func saveToPhotoLibrary() {
-        guard let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) else { return }
+        guard let uiImage = DatabaseManager.shared.loadImage(fileName: imageFile.imagePath) else { return }
         UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
     }
     
     private func shareImage() {
-        guard let uiImage = DatabaseManager.shared.loadImage(fileName: stickerImage.imagePath) else { return }
+        guard let uiImage = DatabaseManager.shared.loadImage(fileName: imageFile.imagePath) else { return }
         
         let activityVC = UIActivityViewController(activityItems: [uiImage], applicationActivities: nil)
         
@@ -170,7 +170,7 @@ struct ImageGridItem: View {
     }
     
     private func deleteImage() {
-        DatabaseManager.shared.deleteImage(stickerImage, context: context)
+        DatabaseManager.shared.deleteImage(imageFile, context: context)
     }
 }
 

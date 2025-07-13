@@ -4,32 +4,15 @@ import Foundation
 
 // MARK: - SwiftData Models
 @Model
-class StickerImage {
+class ImageFile {
     @Attribute(.unique) var id: UUID
     var imagePath: String
     var createdAt: Date
-    var isSticker: Bool // false = normal image, true = sticker
     
-    init(imagePath: String, isSticker: Bool = false) {
+    init(imagePath: String) {
         self.id = UUID()
         self.imagePath = imagePath
         self.createdAt = Date()
-        self.isSticker = isSticker
-    }
-}
-
-@Model
-class StickerPack {
-    @Attribute(.unique) var id: UUID
-    var name: String
-    var createdAt: Date
-    @Relationship(deleteRule: .cascade) var stickers: [StickerImage]
-    
-    init(name: String) {
-        self.id = UUID()
-        self.name = name
-        self.createdAt = Date()
-        self.stickers = []
     }
 }
 
@@ -45,8 +28,8 @@ class DatabaseManager {
             let fileName = saveImageToFile(image)
             
             // 2. Database'e kaydet
-            let stickerImage = StickerImage(imagePath: fileName, isSticker: false)
-            context.insert(stickerImage)
+            let image = ImageFile(imagePath: fileName)
+            context.insert(image)
             
             // 3. Değişiklikleri kaydet
             try context.save()
@@ -90,16 +73,16 @@ class DatabaseManager {
     }
     
     // 🗑️ Resmi sil
-    func deleteImage(_ stickerImage: StickerImage, context: ModelContext) {
+    func deleteImage(_ image: ImageFile, context: ModelContext) {
         // 1. Dosyayı sil
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let fileURL = documentsPath.appendingPathComponent(stickerImage.imagePath)
+        let fileURL = documentsPath.appendingPathComponent(image.imagePath)
         try? FileManager.default.removeItem(at: fileURL)
         
         // 2. Database'den sil
-        context.delete(stickerImage)
+        context.delete(image)
         try? context.save()
         
-        print("✅ Image deleted: \(stickerImage.imagePath)")
+        print("✅ Image deleted: \(image.imagePath)")
     }
 }

@@ -159,49 +159,179 @@ struct CartoonImagePreviewView: View {
 }
 
 struct StickerSheetView: View {
-
+    @State private var selectedOption: OptionType? = nil
+    @State private var packageName: String = ""
+    
+    enum OptionType {
+        case createNew
+        case addExisting
+    }
+    
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 15) {
-                Spacer() // Üstte boşluk
-
-                Text("Choose an option")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-
-                Button (action: {
-                    //ACTION
-                }){
-                    Text("Save to Existing Package")
-                        .frame(maxWidth: .infinity)
-                        .frame(height: geometry.size.height * 0.3)
-                        .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
-                        .foregroundColor(.white)
-                        .background(Color.blue)
-                        .cornerRadius(geometry.size.width * 0.06)
+            VStack {
+                if selectedOption == nil {
+                    // Ana menü görünümü
+                    mainMenuView(geometry: geometry)
+                } else if selectedOption == .createNew {
+                    // Yeni paket oluşturma görünümü
+                    createNewPackageView(geometry: geometry)
+                } else if selectedOption == .addExisting {
+                    // Mevcut pakete ekleme görünümü
+                    addToExistingPackageView(geometry: geometry)
                 }
-                
-                Button(action: {
-                    // ACTION
-                }) {
-                    Text("Create New Package")
-                        .foregroundColor(.white)
-                        .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: geometry.size.height * 0.3)
-                        .background(Color.green)
-                        .cornerRadius(geometry.size.width * 0.06)
-                }
-
-
-                Spacer() // Altta boşluk
             }
             .padding(.horizontal)
-            // Tam sheet yüksekliği kadar yer kapla
             .frame(height: geometry.size.height)
         }
     }
+    
+    // Ana menü görünümü
+    private func mainMenuView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 15) {
+            Spacer()
+            Text("Choose an option")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            Button(action: {
+                selectedOption = .addExisting
+            }) {
+                Text("Save to Existing Package")
+                    .frame(maxWidth: .infinity)
+                    .frame(height: geometry.size.height * 0.3)
+                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                    .foregroundColor(.white)
+                    .background(Color.blue)
+                    .cornerRadius(geometry.size.width * 0.06)
+            }
+            
+            Button(action: {
+                selectedOption = .createNew
+            }) {
+                Text("Create New Package")
+                    .foregroundColor(.white)
+                    .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                    .frame(maxWidth: .infinity)
+                    .frame(height: geometry.size.height * 0.3)
+                    .background(Color.green)
+                    .cornerRadius(geometry.size.width * 0.06)
+            }
+            Spacer()
+        }
+    }
+    
+    // Yeni paket oluşturma görünümü
+    private func createNewPackageView(geometry: GeometryProxy) -> some View {
+        VStack {
+            Spacer()
+
+            HStack {
+                Button(action: {
+                    selectedOption = nil
+                    packageName = ""
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                }
+
+                Spacer()
+
+                Text("Create New Package")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+
+                Spacer()
+            }
+            .padding(.horizontal)
+            .frame(height: geometry.size.height * 0.1)
+
+            // Scrollable içerik
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Package Name")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+
+                        TextField("Enter package name", text: $packageName)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .font(.system(size: geometry.size.width * 0.065))
+                            .frame(height: geometry.size.height * 0.15)
+                        
+                        Spacer()
+                        
+                        Text("Package Icon")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                        
+                        //trayİcon ekleme için alan
+                    }
+                    .padding(.horizontal)
+
+                    Button(action: {
+                        print("Creating new package: \(packageName)")
+                    }) {
+                        Text("Create Sticker Pack & Add Sticker")
+                            .foregroundColor(.white)
+                            .font(.system(size: geometry.size.width * 0.045, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: geometry.size.height * 0.3)
+                            .background(packageName.isEmpty ? Color.gray : Color.green)
+                            .cornerRadius(geometry.size.width * 0.06)
+                    }
+                    .disabled(packageName.isEmpty)
+                    .padding(.horizontal)
+                }
+            }
+            .frame(height: geometry.size.height * 0.6)
+            .padding(.top, 10)
+            
+            Spacer()
+        }
+    }
+
+
+    
+    // Mevcut pakete ekleme görünümü
+    private func addToExistingPackageView(geometry: GeometryProxy) -> some View {
+        VStack {
+            Spacer()
+            
+            HStack {
+                Button(action: {
+                    selectedOption = nil
+                    packageName = ""
+                }) {
+                    Image(systemName: "chevron.left")
+                        .font(.title2)
+                        .foregroundColor(.blue)
+                }
+                
+                Spacer()
+                
+                Text("Save to Existing Package")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .frame(height: geometry.size.height * 0.1)
+            
+            // Scrollable içerik
+            ScrollView {
+                Text("No existing packages found.")
+            }
+            .frame(height: geometry.size.height * 0.6)
+            .padding(.top, 10)
+            
+            Spacer()
+        }
+    }
 }
+
 
 #Preview {
     NavigationStack {
