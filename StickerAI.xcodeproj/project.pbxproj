@@ -16,6 +16,16 @@
 			path = StickerAI;
 			sourceTree = "<group>";
 		};
+		F08CDD942E251DBE0061031E /* WAStickersExtensions */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = WAStickersExtensions;
+			sourceTree = "<group>";
+		};
+		F08CDDB32E251E580061031E /* Frameworks */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +42,8 @@
 		F04E8A502E03151E00DE3078 = {
 			isa = PBXGroup;
 			children = (
+				F08CDDB32E251E580061031E /* Frameworks */,
+				F08CDD942E251DBE0061031E /* WAStickersExtensions */,
 				F04E8A5B2E03151E00DE3078 /* StickerAI */,
 				F04E8A5A2E03151E00DE3078 /* Products */,
 			);
@@ -62,6 +74,8 @@
 			);
 			fileSystemSynchronizedGroups = (
 				F04E8A5B2E03151E00DE3078 /* StickerAI */,
+				F08CDD942E251DBE0061031E /* WAStickersExtensions */,
+				F08CDDB32E251E580061031E /* Frameworks */,
 			);
 			name = StickerAI;
 			packageProductDependencies = (
@@ -82,6 +96,7 @@
 				TargetAttributes = {
 					F04E8A582E03151E00DE3078 = {
 						CreatedOnToolsVersion = 16.3;
+						LastSwiftMigration = 1640;
 					};
 				};
 			};
@@ -251,10 +266,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = BTYG97499L;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"Uygulama kamera izni istiyor\"";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"Bu uygulama fotoğraflarınıza erişmek istiyor\"";
@@ -271,6 +291,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = yns.StickerAI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "WAStickersExtensions/StickerAI-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -281,10 +303,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = BTYG97499L;
 				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Frameworks",
+				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"Uygulama kamera izni istiyor\"";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"Bu uygulama fotoğraflarınıza erişmek istiyor\"";
@@ -301,6 +328,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = yns.StickerAI;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "WAStickersExtensions/StickerAI-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

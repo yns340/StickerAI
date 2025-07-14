@@ -1,4 +1,22 @@
 import SwiftUI
+import SwiftData
+
+// Küçük toast görünümü (isteğe bağlı, butonsuz kısa bildirim için)
+struct ToastView: View {
+    let message: String
+    
+    var body: some View {
+        Text(message)
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color.black.opacity(0.8))
+            .cornerRadius(10)
+            .shadow(radius: 4)
+            .padding(.top, 40)
+    }
+}
 
 struct CartoonImagePreviewView: View {
     let cartoonImage: UIImage
@@ -13,14 +31,11 @@ struct CartoonImagePreviewView: View {
         (isSaving || isSaved) && !isSaved
     }
 
-
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // Görsel alanı
                 VStack {
                     Spacer()
-                    
                     Image(uiImage: cartoonImage)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
@@ -30,17 +45,12 @@ struct CartoonImagePreviewView: View {
                         )
                         .cornerRadius(geometry.size.width * 0.04)
                         .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                    
                     Spacer()
                 }
                 .frame(maxWidth: .infinity)
                 
-                // Alt butonlar
                 VStack(spacing: geometry.size.height * 0.02) {
-                    
                     HStack(spacing: geometry.size.height * 0.02) {
-                        
-                        // ✅ Save as Image butonu (animasyonlu)
                         Button(action: {
                             saveAsImage()
                         }) {
@@ -52,7 +62,7 @@ struct CartoonImagePreviewView: View {
                                     if isSaving || isSaved {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
-                                            .scaleEffect(isIconSolo ? 2.0 : 1.0) // solo ise büyük, değilse küçük
+                                            .scaleEffect(isIconSolo ? 2.0 : 1.0)
                                             .opacity(showCheck ? 1.0 : 0.0)
                                             .animation(.easeInOut(duration: 0.3), value: isSaved)
                                             .animation(.easeOut(duration: 0.3), value: showCheck)
@@ -81,7 +91,6 @@ struct CartoonImagePreviewView: View {
                         .frame(height: geometry.size.height * 0.095)
                         .cornerRadius(geometry.size.width * 0.06)
                         
-                        // ✅ Save as Sticker butonu
                         Button(action: {
                             showStickerSheet = true
                         }) {
@@ -95,7 +104,6 @@ struct CartoonImagePreviewView: View {
                         }
                     }
                     
-                    // ✅ Delete butonu
                     Button(action: {
                         dismiss()
                     }) {
@@ -112,7 +120,7 @@ struct CartoonImagePreviewView: View {
                 .padding(.bottom, geometry.size.height * 0.07)
             }
             .sheet(isPresented: $showStickerSheet) {
-                StickerSheetView()
+                StickerSheetView(cartoonImage: cartoonImage)
                     .presentationDetents([.fraction(0.35)])
                     .presentationDragIndicator(.visible)
             }
@@ -121,24 +129,20 @@ struct CartoonImagePreviewView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    // 🎯 ANA FONKSİYON: Resmi kaydet
     func saveAsImage() {
         isSaving = true
 
-        // 1️⃣ Önce tik animasyonu (her zaman)
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation {
                 showCheck = true
             }
         }
 
-        // 2️⃣ Arka planda kayıt işlemi
         DispatchQueue.global(qos: .userInitiated).async {
             let success = DatabaseManager.shared.saveImage(cartoonImage, context: context)
 
             DispatchQueue.main.async {
                 if success {
-                    // 3️⃣ Başarılıysa: Tik gösterildikten sonra yazıyı sola kaydır
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                         withAnimation {
                             isSaving = false
@@ -146,7 +150,6 @@ struct CartoonImagePreviewView: View {
                         }
                     }
                 } else {
-                    // ❌ Başarısızsa: Her şeyi eski haline döndür
                     withAnimation {
                         isSaving = false
                         showCheck = false
@@ -155,13 +158,23 @@ struct CartoonImagePreviewView: View {
             }
         }
     }
-
 }
 
 struct StickerSheetView: View {
+    let cartoonImage: UIImage
+    @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    
     @State private var selectedOption: OptionType? = nil
     @State private var packageName: String = ""
     
+    // Toast göstermek için
+    @State private var showToast = false
+    @State private var toastMessage = ""
+    
+    @Query(sort: \StickerPackEntity.name, order: .forward)
+    private var stickerPacks: [StickerPackEntity]
+
     enum OptionType {
         case createNew
         case addExisting
@@ -171,22 +184,37 @@ struct StickerSheetView: View {
         GeometryReader { geometry in
             VStack {
                 if selectedOption == nil {
-                    // Ana menü görünümü
                     mainMenuView(geometry: geometry)
                 } else if selectedOption == .createNew {
-                    // Yeni paket oluşturma görünümü
                     createNewPackageView(geometry: geometry)
                 } else if selectedOption == .addExisting {
-                    // Mevcut pakete ekleme görünümü
                     addToExistingPackageView(geometry: geometry)
                 }
             }
             .padding(.horizontal)
             .frame(height: geometry.size.height)
+            // Toast overlay
+            .overlay(
+                Group {
+                    if showToast {
+                        ToastView(message: toastMessage)
+                            .transition(.opacity)
+                    }
+                },
+                alignment: .top
+            )
+            .onChange(of: showToast) { visible in
+                if visible {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation {
+                            showToast = false
+                        }
+                    }
+                }
+            }
         }
     }
     
-    // Ana menü görünümü
     private func mainMenuView(geometry: GeometryProxy) -> some View {
         VStack(spacing: 15) {
             Spacer()
@@ -221,11 +249,9 @@ struct StickerSheetView: View {
         }
     }
     
-    // Yeni paket oluşturma görünümü
     private func createNewPackageView(geometry: GeometryProxy) -> some View {
         VStack {
             Spacer()
-
             HStack {
                 Button(action: {
                     selectedOption = nil
@@ -235,19 +261,15 @@ struct StickerSheetView: View {
                         .font(.title2)
                         .foregroundColor(.blue)
                 }
-
                 Spacer()
-
                 Text("Create New Package")
                     .font(.title2)
                     .fontWeight(.semibold)
-
                 Spacer()
             }
             .padding(.horizontal)
             .frame(height: geometry.size.height * 0.1)
 
-            // Scrollable içerik
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -266,12 +288,12 @@ struct StickerSheetView: View {
                             .font(.headline)
                             .foregroundColor(.secondary)
                         
-                        //trayİcon ekleme için alan
+                        // Tray icon alanı eklenebilir
                     }
                     .padding(.horizontal)
 
                     Button(action: {
-                        print("Creating new package: \(packageName)")
+                        addNewPackageAndSticker()
                     }) {
                         Text("Create Sticker Pack & Add Sticker")
                             .foregroundColor(.white)
@@ -291,14 +313,10 @@ struct StickerSheetView: View {
             Spacer()
         }
     }
-
-
     
-    // Mevcut pakete ekleme görünümü
     private func addToExistingPackageView(geometry: GeometryProxy) -> some View {
         VStack {
-            Spacer()
-            
+            Spacer(minLength: 10)
             HStack {
                 Button(action: {
                     selectedOption = nil
@@ -308,34 +326,134 @@ struct StickerSheetView: View {
                         .font(.title2)
                         .foregroundColor(.blue)
                 }
-                
                 Spacer()
-                
                 Text("Save to Existing Package")
                     .font(.title2)
                     .fontWeight(.semibold)
-                
                 Spacer()
             }
             .padding(.horizontal)
             .frame(height: geometry.size.height * 0.1)
             
-            // Scrollable içerik
             ScrollView {
-                Text("No existing packages found.")
+                if stickerPacks.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "square.stack.3d.down.forward")
+                            .font(.system(size: 60))
+                            .foregroundColor(.gray)
+                        Text("No sticker packs yet")
+                            .font(.title3)
+                            .foregroundColor(.gray)
+                        Text("Create a new pack first.")
+                            .font(.body)
+                            .foregroundColor(.gray)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, 50)
+                } else {
+                    VStack(spacing: 15) {
+                        ForEach(stickerPacks, id: \.id) { pack in
+                            Button {
+                                addStickerTo(pack: pack)
+                            } label: {
+                                VStack(alignment: .leading) {
+                                    Text(pack.name)
+                                        .font(.headline)
+                                        .padding(.leading, 10)
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 10) {
+                                            ForEach(pack.stickers, id: \.id) { sticker in
+                                                if let uiImage = DatabaseManager.shared.loadImageFromPath(sticker.imagePath) {
+                                                    Image(uiImage: uiImage)
+                                                        .resizable()
+                                                        .aspectRatio(contentMode: .fill)
+                                                        .frame(width: 60, height: 60)
+                                                        .cornerRadius(8)
+                                                        .shadow(radius: 2)
+                                                } else {
+                                                    RoundedRectangle(cornerRadius: 8)
+                                                        .fill(Color.gray.opacity(0.3))
+                                                        .frame(width: 60, height: 60)
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal, 10)
+                                    }
+                                }
+                                .padding(.vertical, 5)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            }
+                        }
+                    }
+                }
             }
-            .frame(height: geometry.size.height * 0.6)
-            .padding(.top, 10)
-            
+            .frame(height: geometry.size.height * 0.7)
             Spacer()
         }
     }
-}
+    
+    private func addStickerTo(pack: StickerPackEntity) {
+        guard let sticker = DatabaseManager.shared.saveStickerAndReturn(from: cartoonImage, context: context) else {
+            print("Sticker kaydedilemedi.")
+            return
+        }
 
+        sticker.pack = pack
+        pack.stickers.append(sticker)
+        
+        do {
+            try context.save()
+            toastMessage = "Sticker başarıyla \"\(pack.name)\" paketine eklendi."
+            withAnimation {
+                showToast = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                dismiss()
+            }
+        } catch {
+            print("Hata: \(error)")
+        }
+    }
+    
+    private func addNewPackageAndSticker() {
+        guard let savedSticker = DatabaseManager.shared.saveStickerAndReturn(from: cartoonImage, context: context) else {
+            print("Sticker kaydedilemedi.")
+            return
+        }
+        
+        let newPack = StickerPackEntity(
+            identifier: UUID().uuidString,
+            name: packageName,
+            publisher: "StickerAI",
+            trayImagePath: savedSticker.imagePath
+        )
+        
+        savedSticker.pack = newPack
+        newPack.stickers.append(savedSticker)
+        
+        context.insert(newPack)
+        
+        do {
+            try context.save()
+            toastMessage = "Yeni paket \"\(packageName)\" oluşturuldu ve sticker eklendi."
+            withAnimation {
+                showToast = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                dismiss()
+            }
+        } catch {
+            print("Paket kaydedilirken hata oluştu: \(error)")
+        }
+    }
+}
 
 #Preview {
     NavigationStack {
         CartoonImagePreviewView(cartoonImage: UIImage(systemName: "star.fill")!)
     }
 }
-

@@ -6,8 +6,11 @@ struct LibraryView: View {
         
     // 🎯 Tüm ImageFile öğelerini çek (filtreye gerek yok artık)
     @Query(sort: \ImageFile.createdAt, order: .reverse)
-    
     private var savedImages: [ImageFile]
+    
+    @Query(sort: \StickerPackEntity.name, order: .forward)
+    private var stickerPacks: [StickerPackEntity]
+
     
     var body: some View {
         NavigationStack {
@@ -67,27 +70,71 @@ struct LibraryView: View {
                         .background(Color.black)
                     
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("StickerPacks")
+                        Text("Sticker Packs")
                             .font(.title2)
                             .fontWeight(.semibold)
                             .padding(.horizontal)
-                        
+
                         ScrollView {
-                            VStack(spacing: 15) {
-                                ForEach(0..<6, id: \.self) { index in
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.purple.opacity(0.2))
-                                        .frame(height: geometry.size.height * 0.13)
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.black, lineWidth: 2)
-                                        )
+                            if stickerPacks.isEmpty {
+                                // 🆕 Boş durum
+                                VStack(spacing: 20) {
+                                    Image(systemName: "square.stack.3d.down.forward")
+                                        .font(.system(size: 60))
+                                        .foregroundColor(.gray)
+
+                                    Text("No sticker packs yet")
+                                        .font(.title3)
+                                        .foregroundColor(.gray)
+
+                                    Text("Save your favorite cartoon images as stickers and group them into packs!")
+                                        .font(.body)
+                                        .foregroundColor(.gray)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, 50)
+                            } else {
+                                // Sticker paketleri gösteriliyor
+                                VStack(spacing: 15) {
+                                    ForEach(stickerPacks, id: \.id) { pack in
+                                        VStack(alignment: .leading) {
+                                            Text(pack.name)
+                                                .font(.headline)
+                                                .padding(.leading, 10)
+                                            
+                                            ScrollView(.horizontal, showsIndicators: false) {
+                                                HStack(spacing: 10) {
+                                                    ForEach(pack.stickers, id: \.id) { sticker in
+                                                        if let uiImage = DatabaseManager.shared.loadImageFromPath(sticker.imagePath) {
+                                                            Image(uiImage: uiImage)
+                                                                .resizable()
+                                                                .aspectRatio(contentMode: .fill)
+                                                                .frame(width: 60, height: 60)
+                                                                .cornerRadius(8)
+                                                                .shadow(radius: 2)
+                                                        } else {
+                                                            RoundedRectangle(cornerRadius: 8)
+                                                                .fill(Color.gray.opacity(0.3))
+                                                                .frame(width: 60, height: 60)
+                                                        }
+                                                    }
+                                                }
+                                                .padding(.horizontal, 10)
+                                            }
+                                        }
+                                        .padding(.vertical, 5)
+                                        .background(Color.purple.opacity(0.1))
+                                        .cornerRadius(12)
+                                        .padding(.horizontal)
+                                    }
                                 }
                             }
-                            .padding(.horizontal, 15)
                         }
                     }
                     .frame(height: geometry.size.height / 2)
+
                 }
                 .navigationTitle("Library")
                 .navigationBarTitleDisplayMode(.inline)

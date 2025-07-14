@@ -7,7 +7,11 @@ struct StickerAIApp: App {
         WindowGroup {
             ContentView()
         }
-        .modelContainer(for: [ImageFile.self]) // 🎯 Bu satır önemli!
+        .modelContainer(for: [
+                  ImageFile.self,
+                  StickerEntity.self,
+                  StickerPackEntity.self
+        ])
     }
 }
 
