@@ -429,7 +429,7 @@ struct StickerSheetView: View {
             identifier: UUID().uuidString,
             name: packageName,
             publisher: "StickerAI",
-            trayImagePath: savedSticker.imagePath
+            trayImagePath: "tray_icon.png"
         )
         
         savedSticker.pack = newPack

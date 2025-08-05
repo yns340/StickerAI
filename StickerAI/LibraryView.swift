@@ -128,6 +128,14 @@ struct LibraryView: View {
                                         .background(Color.purple.opacity(0.1))
                                         .cornerRadius(12)
                                         .padding(.horizontal)
+                                        
+                                        .contextMenu {
+                                                Button {
+                                                    exportToWhatsApp(pack)
+                                                } label: {
+                                                    Label("Export to WhatsApp", systemImage: "paperplane")
+                                                }
+                                            }
                                     }
                                 }
                             }
@@ -141,6 +149,124 @@ struct LibraryView: View {
             }
         }
     }
+    
+    // MARK: - WhatsApp'a Gönderme ve Sıkıştırma Fonksiyonları
+    
+    func exportToWhatsApp(_ pack: StickerPackEntity) {
+        guard Interoperability.canSend() else {
+            print("WhatsApp yüklü değil")
+            return
+        }
+        
+        guard pack.stickers.count >= 3 else {
+            print("En az 3 sticker gerekli")
+            return
+        }
+        
+        do {
+            // Tray icon'u database'den yükle
+            let trayIconData: Data
+            if let trayImage = DatabaseManager.shared.loadImageFromPath(pack.trayImagePath) {
+                // Tray image'i sıkıştır
+                guard let compressedTrayData = compressTrayImage(trayImage) else {
+                    print("Tray icon sıkıştırılamadı")
+                    return
+                }
+                trayIconData = compressedTrayData
+            } else {
+                // Fallback - ilk sticker'ı kullan
+                guard let firstSticker = pack.stickers.first,
+                      let firstImage = DatabaseManager.shared.loadImageFromPath(firstSticker.imagePath) else {
+                    print("Tray icon yüklenemedi")
+                    return
+                }
+                guard let compressedTrayData = compressTrayImage(firstImage) else {
+                    print("Fallback tray icon sıkıştırılamadı")
+                    return
+                }
+                trayIconData = compressedTrayData
+            }
+            
+            let whatsappPack = try StickerPack(
+                identifier: pack.identifier,
+                name: pack.name,
+                publisher: pack.publisher,
+                trayImagePNGData: trayIconData,
+                publisherWebsite: nil,
+                privacyPolicyWebsite: nil,
+                licenseAgreementWebsite: nil
+            )
+            
+            for stickerEntity in pack.stickers {
+                guard let stickerImage = DatabaseManager.shared.loadImageFromPath(stickerEntity.imagePath) else { continue }
+                
+                // Resmi sıkıştır ve boyutunu küçült
+                let compressedData = compressImageForWhatsApp(stickerImage)
+                guard let pngData = compressedData else { continue }
+                    
+                print("Sticker: \(pngData.count / 1024) KB")
+            
+                try whatsappPack.addSticker(
+                    imageData: pngData,     // bu artık JPEG ama değişken adı kalsın sorun değil
+                    type: .png,            // <<< 🔁 BURADA png → jpeg OLACAK
+                    emojis: nil,
+                    accessibilityText: nil
+                )
+
+            }
+            
+            whatsappPack.sendToWhatsApp { success in
+                print(success ? "✅ Gönderildi" : "❌ Hata")
+            }
+             
+        } catch {
+            print("Hata: \(error)")
+        }
+    }
+
+    
+    private func compressImageForWhatsApp(_ image: UIImage) -> Data? {
+        let targetSize = CGSize(width: 512, height: 512)
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0 // Boyut tam 512x512 olsun
+        let renderer = UIGraphicsImageRenderer(size: targetSize, format: format)
+
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+
+        // Sadece JPEG ve küçük kalite (çok fark edilmiyor)
+        guard let jpegData = resizedImage.jpegData(compressionQuality: 0.25) else {
+            return nil
+        }
+
+        print("Sticker boyutu: \(jpegData.count / 1024) KB")
+        return jpegData
+    }
+
+
+    
+    private func compressTrayImage(_ image: UIImage) -> Data? {
+        let traySize = CGSize(width: 96, height: 96)
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1.0 // ÖLÇEK = 1.0 → 96x96 olsun, 288 değil!
+        
+        let renderer = UIGraphicsImageRenderer(size: traySize, format: format)
+        let resizedImage = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: traySize))
+        }
+
+        // JPEG ile sıkıştır
+        guard let jpegData = resizedImage.jpegData(compressionQuality: 0.2) else {
+            return nil
+        }
+
+        print("Tray icon boyutu: \(jpegData.count / 1024) KB")
+        return jpegData
+    }
+
 }
 
 // MARK: - Grid Item Component

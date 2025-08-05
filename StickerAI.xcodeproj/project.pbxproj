@@ -10,9 +10,22 @@
 		F04E8A592E03151E00DE3078 /* StickerAI.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = StickerAI.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		F0388C0C2E34FDFD00152686 /* Exceptions for "StickerAI" folder in "StickerAI" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = F04E8A582E03151E00DE3078 /* StickerAI */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		F04E8A5B2E03151E00DE3078 /* StickerAI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				F0388C0C2E34FDFD00152686 /* Exceptions for "StickerAI" folder in "StickerAI" target */,
+			);
 			path = StickerAI;
 			sourceTree = "<group>";
 		};
@@ -276,6 +289,7 @@
 					"$(PROJECT_DIR)/Frameworks",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StickerAI/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"Uygulama kamera izni istiyor\"";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"Bu uygulama fotoğraflarınıza erişmek istiyor\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -313,6 +327,7 @@
 					"$(PROJECT_DIR)/Frameworks",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StickerAI/Info.plist;
 				INFOPLIST_KEY_NSCameraUsageDescription = "\"Uygulama kamera izni istiyor\"";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "\"Bu uygulama fotoğraflarınıza erişmek istiyor\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
